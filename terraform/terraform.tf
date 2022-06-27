@@ -20,10 +20,10 @@ provider "aws" {
 provider "helm" {
   kubernetes {
     config_path = pathexpand("${var.kubeconfig_path}/config")
-    # host                   = data.aws_eks_cluster.cluster.endpoint
-    # cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+    # host                   = module.eks.cluster_endpoint
+    # cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
     # exec {
-    #   api_version = "client.authentication.k8s.io/v1alpha1"
+    #   api_version = "client.authentication.k8s.io/v1beta1"
     #   args        = ["eks", "get-token", "--cluster-name", var.name]
     #   command     = "aws"
     # }
@@ -34,4 +34,10 @@ provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
   token                  = module.eks.cluster_tokent_auth.token
+  # insecure               = true
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_id]
+    command     = "aws"
+  }
 }

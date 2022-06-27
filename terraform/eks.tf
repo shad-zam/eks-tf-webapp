@@ -10,6 +10,11 @@ module "eks" {
   private_subnets = module.vpc.private_subnets
   public_subnets  = module.vpc.public_subnets
   kubeconfig_path = var.kubeconfig_path
+  fargate_ns      = ["kube-system", "default", "nginx"]
+
+  depends_on = [
+    module.vpc
+  ]
 }
 
 resource "null_resource" "patch-coredns" {
@@ -20,7 +25,7 @@ resource "null_resource" "patch-coredns" {
     --type json \
     -p='[{"op": "remove", "path": "/spec/template/metadata/annotations/eks.amazonaws.com~1compute-type"}]'
     EOT
-    
+
   }
   depends_on = [module.eks]
 }

@@ -65,7 +65,7 @@ resource "aws_route" "public_internet_gateway" {
   gateway_id             = aws_internet_gateway.this[0].id
   timeouts {
     create = "5m"
-    
+
   }
 }
 
@@ -191,11 +191,11 @@ data "aws_vpc_endpoint_service" "s3" {
 }
 
 resource "aws_vpc_endpoint" "s3_endpoint" {
-  count = var.create_vpc && var.create_vpce ? 1 : 0
+  count             = var.create_vpc && var.create_vpce ? 1 : 0
   vpc_id            = aws_vpc.this[0].id
   service_name      = data.aws_vpc_endpoint_service.s3.service_name
   vpc_endpoint_type = "Gateway"
-  route_table_ids   =  [element(aws_route_table.private[*].id,count.index)]
+  route_table_ids   = [element(aws_route_table.private[*].id, count.index)]
 }
 
 
@@ -207,8 +207,8 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 resource "aws_route_table_association" "private" {
   count = var.create_vpc && length(var.private_subnets) > 0 ? length(var.private_subnets) : 0
 
-  subnet_id = element(aws_subnet.private[*].id, count.index)
-  route_table_id = element(aws_route_table.private[*].id,count.index)
+  subnet_id      = element(aws_subnet.private[*].id, count.index)
+  route_table_id = element(aws_route_table.private[*].id, count.index)
 }
 
 resource "aws_route_table_association" "public" {

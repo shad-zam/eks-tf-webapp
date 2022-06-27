@@ -1,8 +1,8 @@
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
+# provider "kubernetes" {
+#   host                   = data.aws_eks_cluster.cluster.endpoint
+#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+#   token                  = data.aws_eks_cluster_auth.cluster.token
+# }
 
 data "aws_eks_cluster" "cluster" {
   name = aws_eks_cluster.main.id
@@ -19,7 +19,7 @@ resource "aws_eks_cluster" "main" {
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   vpc_config {
-    subnet_ids = concat(var.public_subnets, var.private_subnets,)
+    subnet_ids = concat(var.public_subnets, var.private_subnets, )
   }
 
   timeouts {
@@ -78,13 +78,13 @@ resource "aws_eks_fargate_profile" "main" {
   pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
   subnet_ids             = var.private_subnets
 
-  selector {
-    namespace = "default"
+  dynamic "selector" {
+    for_each = var.fargate_ns
+    content {
+      namespace = selector.value
+    }
   }
 
-  selector {
-    namespace = "kube-system"
-  }
 
   timeouts {
     create = "30m"
@@ -141,12 +141,6 @@ resource "aws_iam_policy" "AmazonEKSClusterCloudWatchMetricsPolicy" {
 EOF
 }
 
-
-
-
-
-
-
 resource "aws_cloudwatch_log_group" "eks_cluster" {
   name              = "/aws/eks/${var.name}-${var.environment}/cluster"
   retention_in_days = 30
@@ -177,8 +171,8 @@ data "template_file" "kubeconfig" {
     clustername         = aws_eks_cluster.main.name
     endpoint            = data.aws_eks_cluster.cluster.endpoint
     cluster_auth_base64 = data.aws_eks_cluster.cluster.certificate_authority[0].data
-    region = var.region
-    cluster_name = aws_eks_cluster.main.id
+    region              = var.region
+    cluster_name        = aws_eks_cluster.main.id
   }
 }
 

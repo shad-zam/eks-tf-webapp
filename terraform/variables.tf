@@ -62,5 +62,5 @@ variable "public_subnets_ids" {
 
 variable "kubeconfig_path" {
   description = "Path where the config file for kubectl should be written to"
-  default = "~/.kube"
+  default     = "~/.kube"
 }

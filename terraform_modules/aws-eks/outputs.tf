@@ -6,23 +6,23 @@ output "kubectl_config" {
 output "cluster_id" {
   description = "ID of the created cluster"
   value       = try(aws_eks_cluster.main.id, "")
-  
+
 }
 
 output "cluster_arn" {
   description = "arn of the created cluster"
   value       = try(aws_eks_cluster.main.arn, "")
-  
+
 }
 
 output "cluster_endpoint" {
   description = "Endpoint for your Kubernetes API server"
-  value = try(aws_eks_cluster.main.endpoint, "")
+  value       = try(aws_eks_cluster.main.endpoint, "")
 }
 
 output "cluster_ca_certificate" {
   description = "Endpoint for your Kubernetes API server"
-  value = try(data.aws_eks_cluster.cluster.certificate_authority[0].data, "")
+  value       = try(data.aws_eks_cluster.cluster.certificate_authority[0].data, "")
 }
 
 output "oidc_token" {

@@ -1,7 +1,23 @@
+resource "kubernetes_namespace" "nginx" {
+  metadata {
+    annotations = {
+      name = "nginx"
+    }
+
+    labels = {
+      app = "nginx"
+    }
+
+    name = "nginx"
+  }
+  depends_on = [helm_release.lbc]
+}
+
+
 resource "kubernetes_deployment" "nginx" {
   metadata {
-    name = "nginx-deployment"
-    namespace = "default"
+    name      = "nginx-deployment"
+    namespace = "nginx"
     labels = {
       app = "nginx"
     }
@@ -35,16 +51,18 @@ resource "kubernetes_deployment" "nginx" {
       }
     }
   }
-  depends_on = [helm_release.lbc]
+  depends_on = [
+    kubernetes_namespace.nginx
+  ]
 }
 
 resource "kubernetes_service" "nginx" {
   metadata {
     annotations = {
-        "alb.ingress.kubernetes.io/target-type" = "ip"  
+      "alb.ingress.kubernetes.io/target-type" = "ip"
     }
-    name = "nginx-service"
-    namespace = "default"
+    name      = "nginx-service"
+    namespace = "nginx"
   }
   spec {
     selector = {
@@ -59,16 +77,16 @@ resource "kubernetes_service" "nginx" {
     type = "NodePort"
   }
   depends_on = [kubernetes_deployment.nginx]
-  
+
 }
 
 resource "kubernetes_ingress_v1" "nginx" {
   metadata {
     name      = "nginx-ingress"
-    namespace = "default"
+    namespace = "nginx"
     annotations = {
-      "kubernetes.io/ingress.class"           = "alb"
-      "alb.ingress.kubernetes.io/scheme"      = "internet-facing"
+      "kubernetes.io/ingress.class"      = "alb"
+      "alb.ingress.kubernetes.io/scheme" = "internet-facing"
     }
     labels = {
       "app" = "nginx"
@@ -82,24 +100,20 @@ resource "kubernetes_ingress_v1" "nginx" {
           path = "/"
           backend {
             service {
-                name = "nginx-service"
-                port {
-                    number = 80
-                }
+              name = "nginx-service"
+              port {
+                number = 80
+              }
             }
-        
+
           }
 
-          
+
         }
 
-   
+
       }
     }
   }
   depends_on = [kubernetes_service.nginx]
-}
-
-output "load_balancer_hostname" {
-  value = kubernetes_ingress_v1.nginx.status.0.load_balancer.0.ingress.0.hostname
 }
